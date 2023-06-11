@@ -1,0 +1,10 @@
+This is a software made with Qt for editing pictures and videos. It includes features such as image erosion, brightness adjustment, size adjustment, output directory specification, merging two images, face recognition, and video editing (with bugs, it cannot run normally, it's just an attempt). Some libraries use absolute paths (relative paths cause errors). If you encounter any issues while running it, please feel free to contact me at weisheng.luo@eleve.isep.fr.
+
+
+in linux ubuntu
+1.Open a terminal in the project directory
+2.qmake cproject.pro
+3.make
+4.（./cproject）（remove brackets）
+run successfully
+
