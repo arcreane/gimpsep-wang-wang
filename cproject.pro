@@ -34,7 +34,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 # include opencv
-INCLUDEPATH += /usr/local/include/opencv4  # 根据你的OpenCV安装位置进行修改
+INCLUDEPATH += /usr/local/include/opencv4 
 
 LIBS += -L/usr/local/lib \
         -lopencv_core \

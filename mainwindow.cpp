@@ -19,8 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-     brightnessLevel = 5;  // 初始亮度等级为5
-     // 初始化 timer，并连接到 updateFrame 槽函数
+     brightnessLevel = 5;  // Initial brightness level is 5
+     //Initialize timer and connect to updateFrame slot function
        timer = new QTimer(this);
        connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
 }
@@ -32,21 +32,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_showImage_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.jpg *.png)"));
+    QString path = QFileDialog::getOpenFileName(this, tr("show the photo"), ".", tr("Image Files(*.jpg *.png)"));
 
-    // 加载图片
+    // load image
     mCVimage = cv::imread(path.toStdString());
 
-    // 转换颜色空间从BGR到RGB
+    // bgr to rgb
     cv::cvtColor( mCVimage, mCVimage, cv::COLOR_BGR2RGB);
 
-    // 将OpenCV图像转换为Qt图像
+    //Convert OpenCV image to Qt image
     QImage qimg = QImage((uchar*)mCVimage.data, mCVimage.cols, mCVimage.rows, QImage::Format_RGB888);
 
-    // 设置QLabel自动缩放内容
+    // Set QLabel to automatically scale content
     ui->label->setScaledContents(true);
 
-    // 设置QLabel的Pixmap
+    // Set the Pixmap of QLabel
     ui->label->setPixmap(QPixmap::fromImage(qimg));
 }
 
@@ -54,114 +54,114 @@ void MainWindow::on_pushButton_showImage_clicked()
 
 void MainWindow::on_dilatation_clicked()
 {
-    int dilatationSize = 5; // 你可以根据需求设置这个值
+    int dilatationSize = 5;
 
-        // 创建用于膨胀的内核
+        // Create a kernel for dilatation
         cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2 * dilatationSize + 1, 2 * dilatationSize + 1),
                                                     cv::Point(dilatationSize, dilatationSize));
 
-        // 膨胀操作
+        // Perform dilatation operation
         cv::Mat dilatedImage;
         cv::dilate(mCVimage, dilatedImage, element);
 
-        // 将处理后的图像转换为QImage
+       // Convert the processed image to QImage
         QImage qimg = QImage((uchar*)dilatedImage.data, dilatedImage.cols, dilatedImage.rows, QImage::Format_RGB888);
 
-        // 在 QLabel 上显示处理后的图像
+        // show it in qlabel
         ui->label->setPixmap(QPixmap::fromImage(qimg));
 }
 
-void MainWindow::on_hebing_clicked()
+void MainWindow::on_mergeimages_clicked()
 {
-    // 加载第二张图片
-        QString path2 = QFileDialog::getOpenFileName(this, tr("选择第二张图片"), ".", tr("Image Files(*.jpg *.png)"));
+    // load the second image
+        QString path2 = QFileDialog::getOpenFileName(this, tr("2nd photo"), ".", tr("Image Files(*.jpg *.png)"));
         cv::Mat img2 = cv::imread(path2.toStdString());
 
-        // 转换颜色空间从BGR到RGB
+        // Convert color space from BGR to RGB
         cv::cvtColor(img2, img2, cv::COLOR_BGR2RGB);
 
-        // 如果第一张图片和第二张图片的高度不同，将第二张图片的高度调整为与第一张图片相同
+        // If the height of the first image and the second image are different, adjust the height of the second image to be the same as the first image
         if (img2.rows != mCVimage.rows) {
             double scale = (double)mCVimage.rows / img2.rows;
             cv::resize(img2, img2, cv::Size(), scale, scale);
         }
 
-        // 拼接两张图片
+        // Stitch two images together
         cv::Mat result;
         cv::hconcat(mCVimage, img2, result);
 
-        // 将OpenCV图像转换为Qt图像
+        // Convert OpenCV image to Qt image
         QImage qimg = QImage((uchar*)result.data, result.cols, result.rows, QImage::Format_RGB888);
 
-        // 在 QLabel 上显示处理后的图像
+        // Display the processed image on the QLabel
         ui->label->setPixmap(QPixmap::fromImage(qimg));
 
-        // 在保存之前，将颜色空间从 RGB 转换回 BGR
-        //cv::cvtColor(result, result, cv::COLOR_RGB2BGR);
+        // convert color space from RGB back to BGR before saving
+        cv::cvtColor(result, result, cv::COLOR_RGB2BGR);
 
-        // 将结果保存为文件
-            cv::imwrite("/home/luo/pictures/result.jpg", result);
+        //save
+            //cv::imwrite("/home/luo/pictures/result.jpg", result);
 }
 
 
 void MainWindow::on_print_clicked()
 {
-    // 检查mCVimage是否为空，如果为空，说明没有加载任何图片，就不必保存
+
         if(mCVimage.empty())
         {
-            QMessageBox::warning(this, tr("错误"), tr("没有图片可保存"));
+            QMessageBox::warning(this, tr("error"), tr("no photo"));
             return;
         }
 
-        QString path = QFileDialog::getSaveFileName(this, tr("保存图片"), ".", tr("Image Files(*.jpg)"));
+        QString path = QFileDialog::getSaveFileName(this, tr("save"), ".", tr("Image Files(*.jpg)"));
         if (path.isEmpty())
         {
             return;
         }
         else
         {
-            // 在保存之前，将颜色空间从 RGB 转换回 BGR
+            // rgb to bgr
             cv::Mat saveImg;
             cv::cvtColor(mCVimage, saveImg, cv::COLOR_RGB2BGR);
-            // 使用imwrite()保存图片
+            // use imwrite() for save
             cv::imwrite(path.toStdString(), saveImg);
         }
 }
 
-void MainWindow::on_chicun_clicked()
+void MainWindow::on_Stitching_clicked()
 {
-    // 检查mCVimage是否为空，如果为空，说明没有加载任何图片，就不必保存
+
         if(mCVimage.empty())
         {
-            QMessageBox::warning(this, tr("错误"), tr("没有图片可处理"));
+            QMessageBox::warning(this, tr("error"), tr("no photo"));
             return;
         }
 
         bool ok;
-            int newWidth = QInputDialog::getInt(this, tr("输入新宽度"), tr("宽度:"), 1, 1, 10000, 1, &ok);
-            int newHeight = QInputDialog::getInt(this, tr("输入新高度"), tr("高度:"), 1, 1, 10000, 1, &ok);
+            int newWidth = QInputDialog::getInt(this, tr("new w"), tr("w:"), 1, 1, 10000, 1, &ok);
+            int newHeight = QInputDialog::getInt(this, tr("new h"), tr("h:"), 1, 1, 10000, 1, &ok);
 
-            if(ok) // 如果用户点击了"OK"，那么就更改图像大小
+            if(ok)
             {
                 cv::resize(mCVimage, mCVimage, cv::Size(newWidth, newHeight));
 
-                // 将处理后的图像转换为QImage
+              // convert the processed image to QImage
                 QImage qimg = QImage((uchar*)mCVimage.data, mCVimage.cols, mCVimage.rows, QImage::Format_RGB888);
 
-                // 在 QLabel 上显示处理后的图像
+                // Display the processed image on the QLabel
                 ui->label->setPixmap(QPixmap::fromImage(qimg));
 
-                QString path = QFileDialog::getSaveFileName(this, tr("保存图片"), ".", tr("Image Files(*.jpg)"));
+                QString path = QFileDialog::getSaveFileName(this, tr("save"), ".", tr("Image Files(*.jpg)"));
                 if (path.isEmpty())
                 {
                     return;
                 }
                 else
                 {
-                    // 在保存之前，将颜色空间从 RGB 转换回 BGR
+                    //RGB to BGR
                     cv::Mat saveImg;
                     cv::cvtColor(mCVimage, saveImg, cv::COLOR_RGB2BGR);
-                    // 使用imwrite()保存图片
+
                     cv::imwrite(path.toStdString(), saveImg);
                 }
             }
@@ -169,70 +169,70 @@ void MainWindow::on_chicun_clicked()
 
 }
 
-void MainWindow::on_liangdu_clicked()
+void MainWindow::on_Brighten_clicked()
 {
-    // 检查mCVimage是否为空，如果为空，说明没有加载任何图片，就不必调整亮度
+
         if(mCVimage.empty())
         {
-            QMessageBox::warning(this, tr("错误"), tr("没有图片可处理"));
+            QMessageBox::warning(this, tr("error"), tr("no photo"));
             return;
         }
 
-        // 检查亮度等级是否已达到最大值
+        // Check if the brightness level has reached the maximum value
         if(brightnessLevel >= 10)
         {
-            QMessageBox::warning(this, tr("警告"), tr("已达到最大亮度等级"));
+            QMessageBox::warning(this, tr("attention"), tr("is max"));
             return;
         }
 
-        // 增加亮度等级
+        // increase brightness level
         brightnessLevel++;
 
-        // 调整亮度
-        cv::Mat brighterImage = mCVimage + cv::Scalar((brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50);  // 每个等级增加50的亮度
+        // adjust brightness
+        cv::Mat brighterImage = mCVimage + cv::Scalar((brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50);
 
-        // 在 QLabel 上显示处理后的图像
+        // show it in QLabel
         QImage qimg = QImage((uchar*)brighterImage.data, brighterImage.cols, brighterImage.rows, QImage::Format_RGB888);
         ui->label->setPixmap(QPixmap::fromImage(qimg));
 
-        // 更新mCVimage以便以后可以对新的图像进行操作
+        // Update mCVimage so that it can operate on new images later
         mCVimage = brighterImage;
 }
-void MainWindow::on_andu_clicked()
+void MainWindow::on_darken_clicked()
 {
-     // 检查mCVimage是否为空，如果为空，说明没有加载任何图片，就不必调整亮度
+
             if(mCVimage.empty())
             {
-                QMessageBox::warning(this, tr("错误"), tr("没有图片可处理"));
+                QMessageBox::warning(this, tr("error"), tr("no photo"));
                 return;
             }
 
-            // 检查亮度等级是否已达到最小值
+            // check min
             if(brightnessLevel <= 0)
             {
-                QMessageBox::warning(this, tr("警告"), tr("已达到最小亮度等级"));
+                QMessageBox::warning(this, tr("attention"), tr("is min now"));
                 return;
             }
 
-            // 减少亮度等级
+            // decrease brightness level
             brightnessLevel--;
 
-            // 调整亮度
-            cv::Mat darkerImage = mCVimage + cv::Scalar((brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50);  // 每个等级减少50的亮度
+            // adjust brightness
+            cv::Mat darkerImage = mCVimage + cv::Scalar((brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50, (brightnessLevel - 5) * 50);  
 
-            // 在 QLabel 上显示处理后的图像
+            // Display the processed image on the QLabel
             QImage qimg = QImage((uchar*)darkerImage.data, darkerImage.cols, darkerImage.rows, QImage::Format_RGB888);
             ui->label->setPixmap(QPixmap::fromImage(qimg));
 
-            // 更新mCVimage以便以后可以对新的图像进行操作
+            // Update mCVimage so that new images can be operated on later
             mCVimage = darkerImage;
 
 }
 
-void MainWindow::on_renlian_clicked()
+void MainWindow::on_Detection_clicked()
 {
     // Load face detector model
-    if (!faceDetector.load("/home/luo/ku/renlian.xml"))
+    if (!faceDetector.load("/home/luo/ku/mod.xml"))
     {
         QMessageBox::critical(this, "Error", "Failed to load face detector model.");
         return;
@@ -240,7 +240,7 @@ void MainWindow::on_renlian_clicked()
 
     if(mCVimage.empty())
     {
-        QMessageBox::warning(this, tr("错误"), tr("没有图片可处理"));
+        QMessageBox::warning(this, tr("error"), tr("no photo"));
         return;
     }
 
@@ -264,7 +264,7 @@ void MainWindow::on_renlian_clicked()
 }
 
 
-/*void MainWindow::on_renlian_clicked()
+/*void MainWindow::on_Detection_clicked()
 {
     // Load face detector model
      if (!faceDetector.load("/home/luo/ku/renlian.xml"))
@@ -310,8 +310,7 @@ void MainWindow::updateFrame()
     }
 }*/
 void MainWindow::updateFrame() {
-    // 函数体
-}
+    
 
 
 /*void MainWindow::on_pushButton_clicked()
@@ -333,10 +332,10 @@ void MainWindow::updateFrame() {
     }
 
     int duration = end - start;
-    QString outputFileName = "output.mp4"; // 设置输出文件名，你可能需要让用户选择这个文件名
+    QString outputFileName = "output.mp4";
 
     QProcess* process = new QProcess(this);
-    QString program = "/usr/bin/ffmpeg";  // 注意这里使用了完整路径
+    QString program = "/usr/bin/ffmpeg";
     QStringList arguments;
     arguments << "-ss" << QString::number(start)
               << "-i" << videoFile
@@ -409,7 +408,7 @@ void MainWindow::on_pushButton_clicked() {
     int startFrame = startSecond * fps;
     int endFrame = endSecond * fps;
 
-    std::string outputFile = "output.avi"; // 你可能需要让用户选择输出文件名
+    std::string outputFile = "output.avi";
 
     clipVideo(videoFile.toStdString(), outputFile, startFrame, endFrame);
 }
